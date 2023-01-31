@@ -1,4 +1,6 @@
 var express = require("express");
+var path = require("path");
+var blog = require("C:/Users/raval/OneDrive - Seneca/WEB322/web322-app/views/blog-service.js");
 var app = express();
 
 var HTTP_PORT = process.env.PORT || 8080;
@@ -7,15 +9,18 @@ var HTTP_PORT = process.env.PORT || 8080;
 function onHttpStart() {
     console.log("Express http server listening on: " + HTTP_PORT);
   }
+   
+  //using a static file
+  app.use(express.static('public'));
   
   // setup a 'route' to listen on the default url path (http://localhost)
   app.get("/", function(req,res){
-      res.redirect('http://localhost:8080/');
+      res.redirect('/about');
   });
   
   // setup another route to listen on /about
-  app.get("/", function(req,res){
-      res.send("<h3>About</h3>");
+  app.get("/about", function(req,res){
+      res.sendFile(path.join(__dirname,"/about.html"));
   });
   
   // setup http server to listen on HTTP_PORT
