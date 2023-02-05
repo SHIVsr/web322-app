@@ -24,7 +24,40 @@ function onHttpStart() {
   });
 
   // setup another route to listen on /blog
-  app.get("/blog")
+  app.get("/Blog", function(req,res){
+      blog.getPublishPosts().then(posts => {
+        res.send(posts)
+      }).catch(err=>{
+        res.send({err})
+      })
+  });
+  
+  // setup another route to listen on /posts
+  app.get("/Posts", function(req,res){
+    blog.getAllPosts().then(posts => {
+        res.send(posts)
+    }).catch(err =>{
+        res.send(err)
+    })
+  });
+  
+  // setup another route to listen on /Categories
+  app.get("/Categories", function(req,res){
+    blog.getCategories().then(categories =>{
+        req.send(categories)
+    }).catch(err=>{
+        res.send(err)
+    })
+  });
+
+  // setup error page
+  app.use((req, res) => {
+    res.status(404).send("Page Not Found")
+  })
   
   // setup http server to listen on HTTP_PORT
-  app.listen(HTTP_PORT, onHttpStart);
+  blog.initialize().then(() =>{
+      app.listen(HTTP_PORT, onHttpStart);
+  }).catch(err=>{
+    console.log("error in promise")
+  })
