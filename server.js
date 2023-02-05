@@ -1,3 +1,17 @@
+/*********************************************************************************
+*  WEB322 – Assignment 02
+*  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part *  of this assignment has been copied manually or electronically from any other source 
+*  (including 3rd party web sites) or distributed to other students.
+* 
+*  Name: Shivkumar Virendranath Raval Student ID: 168146215 Date: 05-02-2023
+*
+*  Cyclic Web App URL: https://tough-fish-crown.cyclic.app/about
+*
+*  GitHub Repository URL: https://github.com/SHIVsr/web322-app
+*
+********************************************************************************/ 
+
+
 var express = require("express");
 var path = require("path");
 var blog = require("./blog-service");
