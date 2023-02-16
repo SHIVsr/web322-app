@@ -16,8 +16,65 @@ var express = require("express");
 var path = require("path");
 var blog = require("./blog-service");
 var app = express();
-
+const multer = require("multer");
+const cloudinary = require('cloudinary').v2;
+const streamifier = require('streamifier');
 var HTTP_PORT = process.env.PORT || 8080;
+
+//setting the cloudinary config to my name
+cloudinary.config({
+  cloud_name:'dazeqgqat',
+  api_key:'615882254819417',
+  api_secret:'NZMbXl6VvR9USw0NFqZ8JHbr6mU',
+  secure: true
+})
+
+//upload variable without disk storge
+const upload = multer({
+  storage: multer.memoryStorage()
+});
+
+app.post("/Posts/add",upload.single("featureImage"), (req,res) =>{
+  if(req.file){
+    let streamUpload = (req) => {
+        return new Promise((resolve, reject) => {
+            let stream = cloudinary.uploader.upload_stream(
+                (error, result) => {
+                    if (result) {
+                        resolve(result);
+                    } else {
+                        reject(error);
+                    }
+                }
+            );
+
+            streamifier.createReadStream(req.file.buffer).pipe(stream);
+        });
+    };
+
+    async function upload(req) {
+        let result = await streamUpload(req);
+        console.log(result);
+        return result;
+    }
+
+    upload(req).then((uploaded)=>{
+        processPost(uploaded.url);
+    });
+}else{
+    processPost("");
+}
+ 
+function processPost(imageUrl){
+    req.body.featureImage = imageUrl;
+
+    // TODO: Process the req.body and add it as a new Blog Post before redirecting to /posts
+
+    res.redirect('/Posts');
+} 
+
+})
+
 
 // call this function after the http server starts listening for requests
 function onHttpStart() {
@@ -38,7 +95,7 @@ function onHttpStart() {
   });
 
   //route to send file addPost.html
-  app.get("/posts/add",function(req,res){
+  app.get("/Posts/add",function(req,res){
     res.sendFile(path.join(__dirname,"/views/addPost.html"))
   })
 
