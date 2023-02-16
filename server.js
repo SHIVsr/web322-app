@@ -37,6 +37,11 @@ function onHttpStart() {
       res.sendFile(path.join(__dirname,"/views/about.html"));
   });
 
+  //route to send file addPost.html
+  app.get("/posts/add",function(req,res){
+    res.sendFile(path.join(__dirname,"/views/addPost.html"))
+  })
+
   // setup another route to listen on /blog
   app.get("/Blog", function(req,res){
       blog.getPublishPosts().then(posts => {
