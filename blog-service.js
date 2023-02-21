@@ -49,17 +49,55 @@ module.exports.getCategories = () => {
     });
 }
 
-module.exports.addPost = (postData) =>{
-    return new promise((reject,resolve) =>{
+module.exports.addPost = (postData) =>{ 
+    return new Promise((reject,resolve) =>{
+       // const filterPost = posts.filter(post => post.category === category)
+       console.log(postData.length)
+       postData.id = posts.length + 1;
         if(postData.published === undefined){
-            postData.published == false;
+            postData.published = false;
         }
         else{
-            postData.published == true;
+            postData.published = true;
         }
-
-        postData.id = postData.length + 1;
+        
         posts.push(postData);
         resolve(postData);
+    });
+}
+
+module.exports.getPostByCategory = (category) =>{
+    return new Promise((reject,resolve)=>{
+        const filterPost = posts.filter(post => post.category === category)
+        if(filterPost.length > 0){
+            resolve(filterPost);
+        }
+        else{
+            reject("no results returned");
+        }
+    });
+}
+
+module.exports.getPostsByMinDate=(minDateStr) =>{
+    return new Promise((reject,resolve) =>{
+        const filterPost = posts.filter(post=>new Date(post,postDate) >= new Date(minDateStr));
+        if(filterPost.length > 0){
+            resolve(filterPost);
+        }
+        else{
+            reject("No results returned");
+        }
+    });
+}
+
+module.exports.getPostById = (id) =>{
+    return new Promise((reject,resolve) =>{
+        const post = posts.find(post => post.id === id);
+        if(post){
+            resolve(post);
+        }
+        else{
+            reject("No result returned");
+        }
     });
 }

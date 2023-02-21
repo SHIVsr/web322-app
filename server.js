@@ -69,8 +69,11 @@ function processPost(imageUrl){
     req.body.featureImage = imageUrl;
 
     // TODO: Process the req.body and add it as a new Blog Post before redirecting to /posts
-
-    res.redirect('/Posts');
+    blog.addPost(req.body).then(()=>{
+      res.redirect('/')
+    }).catch((err)=>{
+      res.redirect('/Posts');
+    })
 } 
 
 })
@@ -110,12 +113,45 @@ function onHttpStart() {
   
   // setup another route to listen on /posts
   app.get("/Posts", function(req,res){
+    const category = req.query.category;
+    const minDate = req.query.minDate;
     blog.getAllPosts().then(posts => {
         res.send(posts)
     }).catch(err =>{
         res.send(err)
     })
+    if(category){
+      blog.getPostByCategory(category).then(posts =>{
+        res.json(posts);
+      }).catch(err=>{
+        res.send(err)
+      })
+    }
+    else if(minDate){
+      blog.getPostsByMinDate(minDate).then(posts=>{
+        res.json(posts);
+      }).catch(err=>{
+        res.send(err);
+      })
+    }
+    else{
+      blog.getAllPosts().then(posts=>{
+        res.json(posts);
+      }).catch(err=>{
+        res.send(err);
+      })
+    }
   });
+
+  //setup another route to listen on /Posts/:id
+  app.get("/Posts/:id", function(req,res){
+    const postId =req.params.id;
+    blog.getPostById(postId).then(post => {
+      res.json(post);
+    }).catch(err=>{
+      res.send(err);
+    })
+  })
   
   // setup another route to listen on /Categories
   app.get("/Categories", function(req,res){
