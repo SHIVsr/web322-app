@@ -115,11 +115,6 @@ function onHttpStart() {
   app.get("/Posts", function(req,res){
     const category = req.query.category;
     const minDate = req.query.minDate;
-    blog.getAllPosts().then(posts => {
-        res.send(posts)
-    }).catch(err =>{
-        res.send(err)
-    })
     if(category){
       blog.getPostByCategory(category).then(posts =>{
         res.json(posts);
