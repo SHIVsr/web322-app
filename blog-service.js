@@ -85,7 +85,7 @@ module.exports.getPostsByMinDate=(minDateStr) =>{
             resolve(filterPost);
         }
         else{
-            reject("No results returned");
+            reject("No results found");
         }
     });
 }
