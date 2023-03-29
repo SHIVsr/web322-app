@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-let = posts = [];
+let  posts = [];
 let categories = [];
 
 module.exports.initialize=()=>{
@@ -21,7 +21,7 @@ module.exports.initialize=()=>{
     });
 }
 module.exports.getAllPosts = () =>{
-    return new Promise((reject,resolve) =>{
+    return new Promise((resolve,reject) =>{
         if(posts.length === 0){
             return reject("no results retured")
         }
@@ -30,7 +30,7 @@ module.exports.getAllPosts = () =>{
 }
 
 module.exports.getPublishPosts = () =>{
-    return new Promise((reject,resolve)=>{
+    return new Promise((resolve,reject)=>{
         const publishPost = posts.filter(post => post.published);
         if(posts.length === 0){
             return reject("no results returned")
@@ -41,7 +41,7 @@ module.exports.getPublishPosts = () =>{
 
 
 module.exports.getCategories = () => {
-    return new Promise((reject,resolve) => {
+    return new Promise((resolve,reject) => {
       if (categories.length === 0) {
         return reject("no results returned");
       }
@@ -50,7 +50,7 @@ module.exports.getCategories = () => {
 }
 
 module.exports.addPost = (postData) =>{ 
-    return new Promise((reject,resolve) =>{
+    return new Promise((resolve,reject) =>{
        // const filterPost = posts.filter(post => post.category === category)
        console.log(postData.length)
        postData.id = posts.length + 1;
@@ -67,7 +67,7 @@ module.exports.addPost = (postData) =>{
 }
 
 module.exports.getPostByCategory = (category) =>{
-    return new Promise((reject,resolve)=>{
+    return new Promise((resolve,reject)=>{
         const filterPost = posts.filter(post => post.category === category)
         if(filterPost.length > 0){
             resolve(filterPost);
@@ -79,7 +79,7 @@ module.exports.getPostByCategory = (category) =>{
 }
 
 module.exports.getPostsByMinDate=(minDateStr) =>{
-    return new Promise((reject,resolve) =>{
+    return new Promise((resolve,reject) =>{
         const filterPost = posts.filter(post=>new Date(post,postDate) >= new Date(minDateStr));
         if(filterPost.length > 0){
             resolve(filterPost);
@@ -91,7 +91,7 @@ module.exports.getPostsByMinDate=(minDateStr) =>{
 }
 
 module.exports.getPostById = (id) =>{
-    return new Promise((reject,resolve) =>{
+    return new Promise((resolve,reject) =>{
         const post = posts.find(post => post.id === id);
         if(post){
             resolve(post);
