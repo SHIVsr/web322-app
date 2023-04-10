@@ -51,6 +51,7 @@ module.exports.getPostByCategory = (category) =>{
         .catch(()=>{reject('no results returned');});
       });
 }
+
 module.exports.getPostsByMinDate=(minDateStr) =>{
     return new Promise((resolve,reject)=>{
         Post.findAll({
@@ -160,5 +161,3 @@ module.exports.addCategory = (categoryData) => {
         .catch(() => reject("No Category"));
     });
   };
-
-
