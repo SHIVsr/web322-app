@@ -21,6 +21,8 @@ const cloudinary = require('cloudinary').v2;
 const streamifier = require('streamifier');
 const exphbs = require("express-handlebars");
 const stripJs = require('strip-js');
+const authData = require("./auth-service");
+const clientSessions = require("client-sessions");
 //const { title } = require("process");
 var HTTP_PORT = process.env.PORT || 8080;
 
@@ -81,8 +83,31 @@ app.use(function(req,res,next){
   app.locals.viewingCategory = req.query.category;
   next();
 });
+app.use(express.urlencoded({ extended: true }));
+app.use(
+  clientSessions({
+    cookieName: "session",
+    secret: "blargadeeblargblarg",
+    duration: 24 * 60 * 60 * 1000,
+    activeDuration: 1000 * 60 * 5,
+  })
+);
 
-app.post("/Posts/add",upload.single("featureImage"), (req,res) =>{
+const ensureLogin = (req, res, next) => {
+  if (res.locals.session.user) {
+    return next();
+  }
+  res.redirect("/login");
+};
+
+app.use(function(req, res, next) {
+  res.locals.session = req.session;
+  next();
+});
+
+
+
+app.post("/Posts/add",ensureLogin,upload.single("featureImage"), (req,res) =>{
   if(req.file){
     let streamUpload = (req) => {
       return new Promise((resolve, reject) => {
@@ -134,12 +159,12 @@ function onHttpStart() {
    
   
   // setup a 'route' to redirect to other URL
-  app.get("/", function(req,res){
+  app.get("/", function(_req,res){
       res.redirect('/blog');
   });
   
   // setup another route to listen on /about
-  app.get("/about", function(req,res){
+  app.get("/about", function(_req,res){
       // res.sendFile(path.join(__dirname,"/views/about.html"));
       res.render("about");
   });
@@ -216,7 +241,7 @@ function onHttpStart() {
 });
   
   //route to send file addPost.html
-  app.get("/Posts/add",function(req,res){
+  app.get("/posts/add",ensureLogin,function(req,res){
     // res.sendFile(path.join(__dirname,"/views/addPost.html"))
     blog
     .getCategories()
@@ -224,7 +249,7 @@ function onHttpStart() {
     .catch(() => res.render("addPost", { categories: [] }));
   })
 
-  app.get("/posts/delete/:id", (req, res) => {
+  app.get("/posts/delete/:id", ensureLogin,(req, res) => {
     blog
       .deletePostById(req.params.id)
       .then(() => res.redirect("/posts"))
@@ -235,7 +260,7 @@ function onHttpStart() {
 
   
   // setup another route to listen on /posts
-  app.get("/posts", function(req,res){
+  app.get("/posts", ensureLogin,function(req,res){
     const category = req.query.category;
     const minDate = req.query.minDate;
  
@@ -269,15 +294,15 @@ function onHttpStart() {
   });
 
 
-  app.get("/categories/add", (_req, res) => {
+  app.get("/categories/add", ensureLogin,(_req, res) => {
     res.render("addCategories");
   });
 
-  app.post("/categories/add", (req, res) => {
+  app.post("/categories/add", ensureLogin,(req, res) => {
     blog.addCategory(req.body).then(() => res.redirect("/categories"));
   });
   
-  app.get("/categories/delete/:id", (req, res) => {
+  app.get("/categories/delete/:id", ensureLogin,(req, res) => {
     blog.deleteCategoryById(req.params.id)
       .then(() => res.redirect("/categories"))
       .catch(() =>
@@ -286,7 +311,7 @@ function onHttpStart() {
   });
   
   // setup another route to listen on /Categories
-  app.get("/Categories", function(req,res){
+  app.get("/Categories", ensureLogin,function(req,res){
     blog.getCategories().then(data =>{
         data.length > 0?
         res.render("categories",{categories: data}):res.render("categories",{message: "No Results"})
@@ -295,14 +320,68 @@ function onHttpStart() {
     })
   });
 
+
+
+  app.get("/login", (req, res) => {
+    res.render("login");
+  });
+  
+  app.get("/register", (req, res) => {
+    res.render("register");
+  });
+  
+  app.post("/register", (req, res) => {
+    authData
+      .registerUser(req.body)
+      .then(() => res.render("register", { successMessage: "User created" }))
+      .catch((err) =>
+        res.render("register", { errorMessage: err, userName: req.body.userName })
+      );
+  });
+  
+  app.post("/login", (req, res) => {
+    req.body.userAgent = req.get("User-Agent");
+    authData
+      .checkUser(req.body)
+      .then((user) => {
+        req.session.user = {
+          userName: user.userName,
+          email: user.email,
+          loginHistory: user.loginHistory,
+        };
+        res.redirect("/posts");
+      })
+      .catch((err) =>
+        res.render("login", {
+          errorMessage: err,
+          userName: req.body.userName,
+        })
+      );
+  });
+  
+  app.get("/logout", (req, res) => {
+    req.session.reset();
+    res.redirect("/");
+  });
+  
+  app.get("/userHistory", ensureLogin, (req, res) => {
+    res.render("userHistory");
+  });
+  
   // setup error page
   app.use((req, res) => {
     res.status(404).send("Page Not Found") 
   })
   
   // setup http server to listen on HTTP_PORT
-  blog.initialize().then(() =>{
-      app.listen(HTTP_PORT, onHttpStart);
-  }).catch(err=>{
-    console.log("error in promise")
+  blog.initialize()
+  .then(authData.initialize)
+  .then(() => {
+    const PORT = process.env.PORT || 8080;
+    app.listen(PORT, () => {
+      console.log(`Express http server listening on ${PORT}`);
+    });
   })
+  .catch((e) => {
+    console.error("An error occurred while initializing the server", e);
+  });
